@@ -1,5 +1,12 @@
 package br.edu.ifsp.scl.sdm.intent;
 
+import static android.content.Intent.ACTION_CHOOSER;
+import static android.content.Intent.ACTION_PICK;
+import static android.content.Intent.ACTION_VIEW;
+import static android.content.Intent.EXTRA_INTENT;
+import static android.content.Intent.EXTRA_TITLE;
+
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -12,10 +19,9 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import java.net.URL;
 
 import br.edu.ifsp.scl.sdm.intent.databinding.ActivityMainBinding;
 
@@ -23,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding activityMainBinding;
     private ActivityResultLauncher<String> requisicaoPermissoesActivityResultLauncher;
+    private ActivityResultLauncher<Intent> selecionarImagemActivityResultLauncher;
+    private ActivityResultLauncher<Intent> escolherAplicativoActivityResultLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +56,30 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
         });
+
+        selecionarImagemActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult resultado) {
+                    visualizarImagem(resultado);
+                }
+        });
+
+        escolherAplicativoActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult resultado) {
+                    visualizarImagem(resultado);
+                }
+        });
+    }
+
+    private void visualizarImagem(ActivityResult resultado) {
+        if (resultado.getResultCode() == RESULT_OK) {
+            Uri referenciaImagemUri = resultado.getData().getData();
+            Intent visualizarImagemIntent = new Intent(ACTION_VIEW, referenciaImagemUri);
+            startActivity(visualizarImagemIntent);
+        }
     }
 
     @Override
@@ -66,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                     url = "http://" + url;
                 }
 
-                Intent siteIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                Intent siteIntent = new Intent(ACTION_VIEW, Uri.parse(url));
                 startActivity(siteIntent);
                 return true;
             case R.id.callMi:
@@ -90,8 +122,13 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(ligacaoIntent);
                 return true;
             case R.id.pickMi:
+                selecionarImagemActivityResultLauncher.launch( prepararPegarImagemIntent());
                 return true;
             case R.id.chooserMi:
+                Intent escolherAplicativoIntent = new Intent(ACTION_CHOOSER);
+                escolherAplicativoIntent.putExtra(EXTRA_TITLE, "Escolha um aplicativo para imagens");
+                escolherAplicativoIntent.putExtra(EXTRA_INTENT, prepararPegarImagemIntent());
+                escolherAplicativoActivityResultLauncher.launch(escolherAplicativoIntent);
                 return true;
             case  R.id.exitMi:
                 finish();
@@ -104,6 +141,13 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return false;
         }
+    }
+
+    private Intent prepararPegarImagemIntent() {
+        Intent pegarImagemIntent = new Intent(ACTION_PICK);
+        String diretorio = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getPath();
+        pegarImagemIntent.setDataAndType(Uri.parse(diretorio), "image/*");
+        return pegarImagemIntent;
     }
 
 

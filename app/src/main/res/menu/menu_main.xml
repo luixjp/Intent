@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/viewMi"
-        android:icon="@drawable/ic_browser"
+        android:icon="@mipmap/ic_browser"
         app:showAsAction="ifRoom"
         android:title="Navegador" />
     <item
@@ -30,7 +30,7 @@
         android:title="Lançar action" />
     <item
         android:id="@+id/exitMi"
-        android:icon="@drawable/ic_exit"
+        android:icon="@mipmap/ic_exit"
         app:showAsAction="ifRoom"
         android:title="Sair" />
 </menu>
